@@ -63,7 +63,7 @@ $> trix invoke
 Select the `lock` transaction providing the following parameters:
 * **beneficiary**: alice
 * **owner**: bob
-* **quantity**: 200000
+* **quantity**: 2000000
 * **until**: 120000 (2 minutes)
 
 Whose wallet do you think must be used for signing the transaction?.
