@@ -74,6 +74,22 @@ If everything was done correctly, your CLI should look like this:
 
 That's it! Now you can go to the terminal running the devnet explorer to see your transaction.
 
+## Unlock a Vesting
+Go to the Transactions tab in the devnet explorer. You should see one transaction only. Hit Enter to see the details of the tx.
+Copy the hash next to the "tx" field, we'll need that to unlock the funds (let's call that LOCKED_UTXO)
+Once again, run:
+```bash
+$> trix invoke
+```
+
+Select the `unlock` transaction providing the following parameters:
+* **beneficiary**: alice
+* **locked**: LOCKED_UTXO#0
+
+Your CLI should look like this:
+
+![CLI unlock](./img/cli-unlock.png)
+
 ## Resources
 
 Find more on the [Aiken's user manual](https://aiken-lang.org).
