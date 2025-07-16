@@ -1,4 +1,6 @@
 use aiken/crypto.{VerificationKeyHash}
+use aiken/interval.{Finite, IntervalBound}
+use aiken/primitive/bytearray
 use cardano/transaction.{OutputReference, Transaction}
 use mocktail.{complete, invalid_before, mocktail_tx, required_signer_hash}
 use mocktail/virgin_key_hash.{mock_pub_key_hash}
@@ -10,9 +12,9 @@ pub type VestingDatum {
   /// POSIX time in milliseconds, e.g. 1672843961000
   lock_until: Int,
   /// Owner's credentials
-  owner: VerificationKeyHash,
+  owner: ByteArray,
   /// Beneficiary's credentials
-  beneficiary: VerificationKeyHash,
+  beneficiary: ByteArray,
 }
 
 validator vesting {
@@ -23,10 +25,13 @@ validator vesting {
     tx: Transaction,
   ) {
     expect Some(datum) = datum
+    let owner_keyhash = bytearray.slice(datum.owner, 1, 28)
+    let beneficiary_keyhash = bytearray.slice(datum.beneficiary, 1, 28)
+
     or {
-      key_signed(tx.extra_signatories, datum.owner),
+      key_signed(tx.extra_signatories, owner_keyhash),
       and {
-        key_signed(tx.extra_signatories, datum.beneficiary),
+        key_signed(tx.extra_signatories, beneficiary_keyhash),
         valid_after(tx.validity_range, datum.lock_until),
       },
     }
