@@ -1,13 +1,13 @@
-name = "demo-shop/vesting-example"
+name = "demo-shop/swap-example"
 version = "0.0.0"
 compiler = "v1.1.15"
 plutus = "v3"
 license = "Apache-2.0"
-description = "Aiken contracts for project 'demo-shop/vesting-example'"
+description = "Aiken contracts for project 'demo-shop/swap-example'"
 
 [repository]
 user = "demo-shop"
-project = "vesting-example"
+project = "swap-example"
 platform = "github"
 
 [[dependencies]]
@@ -19,6 +19,5 @@ source = "github"
 name = "sidan-lab/vodka"
 version = "0.1.1-beta"
 source = "github"
- 
 
 [config]
