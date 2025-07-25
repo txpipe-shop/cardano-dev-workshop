@@ -1,12 +1,11 @@
-use cardano/transaction.{NoDatum, Output, OutputReference, Transaction}
-use swap.{AssetClass, OrderDatum}
-use mocktail/virgin_key_hash.{mock_policy_id}
 use aiken/primitive/bytearray
-use mocktail/virgin_address.{mock_pub_key_address}
 use cardano/assets.{add, zero}
+use cardano/transaction.{NoDatum, Output, OutputReference, Transaction}
 use mocktail.{add_output, complete, mocktail_tx}
+use mocktail/virgin_address.{mock_pub_key_address}
+use mocktail/virgin_key_hash.{mock_policy_id}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
-use swap
+use swap.{OrderDatum}
 
 // Example of unit tests for the swap validator.
 type TestCase {
@@ -20,13 +19,16 @@ fn mock_settings(
   test_case: TestCase,
 ) -> (OutputReference, OrderDatum, Transaction) {
   let datum = {
-    let asset_requested =
-      AssetClass {
-        policy_id: mock_policy_id(0),
-        asset_name: bytearray.from_string(@"HelloWorld"),
-      }
+    let asset_requested_policy = mock_policy_id(0)
+    let asset_requested_name = bytearray.from_string(@"AssetName")
+    let amount_requested = 1000
     let destination = mock_pub_key_address(0, None)
-    OrderDatum { asset_requested, amount_requested: 1000, destination }
+    OrderDatum {
+      asset_requested_policy,
+      asset_requested_name,
+      amount_requested,
+      destination,
+    }
   }
 
   let tx = {
@@ -37,8 +39,8 @@ fn mock_settings(
       if test_case.is_value_correct {
         zero
           |> add(
-              datum.asset_requested.policy_id,
-              datum.asset_requested.asset_name,
+              datum.asset_requested_policy,
+              datum.asset_requested_name,
               datum.amount_requested,
             )
       } else {

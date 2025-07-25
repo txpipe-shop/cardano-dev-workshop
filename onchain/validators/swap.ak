@@ -2,14 +2,9 @@ use cardano/address.{Address}
 use cardano/assets.{add, match, zero}
 use cardano/transaction.{Output, OutputReference, Transaction}
 
-
-pub type AssetClass {
-  policy_id: ByteArray,
-  asset_name: ByteArray,
-}
-
 pub type OrderDatum {
-  asset_requested: AssetClass,
+  asset_requested_policy: ByteArray,
+  asset_requested_name: ByteArray,
   amount_requested: Int,
   // The address that will receive the payment of the swap
   destination: Address,
@@ -33,7 +28,12 @@ validator swap {
     expect Some(datum) = datum
 
     // Destructure the datum to get the fields we need. We could do the same for any constructor type.
-    let OrderDatum { asset_requested, amount_requested, destination } = datum
+    let OrderDatum {
+      asset_requested_policy,
+      asset_requested_name,
+      amount_requested,
+      destination,
+    } = datum
 
     // We know the order of the outputs, so we can just access the index where we want the payment output:
     expect [payment_output, ..] = tx.outputs
@@ -41,11 +41,7 @@ validator swap {
     // The datum describes what the expected payment value is.
     let expected_payment_value =
       zero
-        |> add(
-            asset_requested.policy_id,
-            asset_requested.asset_name,
-            amount_requested,
-          )
+        |> add(asset_requested_policy, asset_requested_name, amount_requested)
 
     // Now perform the checks:
     and {

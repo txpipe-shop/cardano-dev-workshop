@@ -1,6 +1,6 @@
 name = "demo-shop/swap-example"
 version = "0.0.0"
-compiler = "v1.1.15"
+compiler = "v1.1.17"
 plutus = "v3"
 license = "Apache-2.0"
 description = "Aiken contracts for project 'demo-shop/swap-example'"
