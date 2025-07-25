@@ -59,7 +59,6 @@ tx swap(
     requested_asset_name: Bytes,
     requested_amount: Int,
     requested_asset_amount: Int,
-    recipient_payment_key: Bytes,
 ){
     input order {
         from: Order,
