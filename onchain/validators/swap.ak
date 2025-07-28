@@ -1,13 +1,13 @@
-use cardano/address.{Address}
 use cardano/assets.{add, match, zero}
 use cardano/transaction.{Output, OutputReference, Transaction}
+use vodka_address.{address_payment_key}
 
 pub type OrderDatum {
   asset_requested_policy: ByteArray,
   asset_requested_name: ByteArray,
   amount_requested: Int,
-  // The address that will receive the payment of the swap
-  destination: Address,
+  // The payment key of the address that will receive the payout of the swap
+  destination: ByteArray,
 }
 
 // The Swap validator will be run whenever a Swap order is spent. It checks:
@@ -42,10 +42,11 @@ validator swap {
     let expected_payment_value =
       zero
         |> add(asset_requested_policy, asset_requested_name, amount_requested)
+    let expected_destination_key = address_payment_key(payment_output.address)
 
     // Now perform the checks:
     and {
-      (payment_output.address == destination)?,
+      (expected_destination_key == destination)?,
       match(payment_output.value, expected_payment_value, >=)?,
     }
   }

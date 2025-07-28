@@ -1,5 +1,5 @@
-party Owner;
-party Trader;
+party Maker;
+party Taker;
 party Recipient;
 
 policy Order = 0x63438824197f158f75e49d7690df01cae4a7e001ec01c8982f22a650;
@@ -8,48 +8,40 @@ type OrderDatum {
   asset_requested_policy: Bytes,
   asset_requested_name: Bytes,
   amount_requested: Int,
-  recipient: CardanoAddress,
+  recipient: Bytes,
 }
 
 tx place_order(
-    asset_offered_policy: Bytes,
-    asset_offered_name: Bytes,
-    amount_offered: Int,
+    offered_policy: Bytes,
+    offered_name: Bytes,
+    offered_amount: Int,
     requested_policy: Bytes,
     requested_name: Bytes,
-    amount: Int,
+    requested_amount: Int,
     recipient_payment_key: Bytes,
 ) {
     input source {
-        from: Owner,
-        min_amount: AnyAsset(asset_offered_policy, asset_offered_name, amount_offered),
+        from: Maker,
+        min_amount: AnyAsset(offered_policy, offered_name, offered_amount),
     }
 
     output {
         to: Order,
-        amount: AnyAsset(asset_offered_policy, asset_offered_name, amount_offered),
+        amount: AnyAsset(offered_policy, offered_name, offered_amount),
         datum: OrderDatum {
             asset_requested_policy: requested_policy,
             asset_requested_name: requested_name,
-            amount_requested: amount,
-            recipient: CardanoAddress {
-                payment_credential: CardanoCredential::VerificationKey {
-                    VerificationKey: recipient_payment_key,
-                },
-                staking_credential: OptionAddressCardanoCredential::None {},
-            },
+            amount_requested: requested_amount,
+            recipient: recipient_payment_key,
         },
     }
 }
 
 tx swap(
     order_ref: UtxoRef,
-    asset_offered_policy: Bytes,
-    asset_offered_name: Bytes,
-    amount_offered: Int,
-    asset_requested_policy: Bytes,
-    asset_requested_name: Bytes,
-    amount_requested: Int,
+    requested_policy: Bytes,
+    requested_name: Bytes,
+    requested_amount: Int,
 ){
     input order {
         from: Order,
@@ -58,9 +50,14 @@ tx swap(
         redeemer: (),
     }
 
+    input trade {
+        from: Taker,
+        min_amount: AnyAsset(requested_policy, requested_name, requested_amount),
+    }
+
     input gas {
-        from: Trader,
-        min_amount: fees + AnyAsset(asset_requested_policy, asset_requested_name, amount_requested),
+        from: Taker,
+        min_amount: fees,
     }
 
     output {
@@ -69,8 +66,8 @@ tx swap(
     }
 
     output {
-        to: Trader,
-        amount: order + gas - fees - AnyAsset(asset_offered_policy, asset_offered_name, amount_offered),
+        to: Taker,
+        amount: order + (gas - fees) + (trade - AnyAsset(requested_policy, requested_name, requested_amount)),
     }
 
     cardano::plutus_witness {
@@ -79,42 +76,3 @@ tx swap(
     }
 }
 
-
-
-// Custom types
-type AssetClass {
-    policy_id: Bytes,
-    asset_name: Bytes,
-}
-
-type CardanoAddress {
-    payment_credential: CardanoCredential,
-    staking_credential: OptionAddressCardanoCredential,
-}
-
-type CardanoCredential {
-    VerificationKey {
-        VerificationKey: Bytes,
-    },
-    Script {
-        Script: Bytes,
-    },
-}
-
-type OptionAddressCardanoCredential {
-    Some {
-        stakeCredential: StakeCredWrapper,
-    },
-    None,
-}
-
-type StakeCredWrapper {
-    Inline {
-        VerificationKey: CardanoCredential,
-    },
-    Pointer {
-        slotNumber: Int,
-        transactionIndex: Int,
-        certificateIndex: Int,
-    },
-}

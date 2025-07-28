@@ -1,9 +1,10 @@
 use aiken/primitive/bytearray
+use cardano/address.{from_verification_key}
 use cardano/assets.{add, zero}
 use cardano/transaction.{NoDatum, Output, OutputReference, Transaction}
 use mocktail.{add_output, complete, mocktail_tx}
 use mocktail/virgin_address.{mock_pub_key_address}
-use mocktail/virgin_key_hash.{mock_policy_id}
+use mocktail/virgin_key_hash.{mock_policy_id, mock_pub_key_hash}
 use mocktail/virgin_output_reference.{mock_utxo_ref}
 use swap.{OrderDatum}
 
@@ -22,7 +23,7 @@ fn mock_settings(
     let asset_requested_policy = mock_policy_id(0)
     let asset_requested_name = bytearray.from_string(@"AssetName")
     let amount_requested = 1000
-    let destination = mock_pub_key_address(0, None)
+    let destination = mock_pub_key_hash(0)
     OrderDatum {
       asset_requested_policy,
       asset_requested_name,
@@ -51,7 +52,7 @@ fn mock_settings(
     // Different address for failure case
     let address =
       if test_case.is_paid_to_destination {
-        datum.destination
+        from_verification_key(datum.destination)
       } else {
         mock_pub_key_address(1, None)
       }
