@@ -1,8 +1,11 @@
-# Vesting example
+# Order Book example
+An order swap contract enables peer-to-peer exchanges of assets without the intervention of third parties. A user (the Maker) creates an order by locking some asset and specifying in the datum:
 
-A vesting contract is a common type of contract that allows funds to be locked for a period of time and unlocked later—once a specified time has passed. Typically, a vesting contract defines a beneficiary who may be different from the original owner.
+- What asset they want and how much they want
 
-In this example, an Owner address locks tAda that will be available for unlocking some time after the initial locking transaction, by either the Beneficiary stated in the datum or the Owner.
+- Who should receive it (a Recipient)
+
+Another user (the Taker) can then fulfill the order by paying the requested asset to the specified recipient, unlocking the offered asset in return.
 
 ## Folder structure
 
@@ -14,7 +17,7 @@ In this example, an Owner address locks tAda that will be available for unlockin
 │   └── protocol.ts
 ├── onchain
 │   ├── validators
-│   │  └── vesting.ak
+│   │  └── swap.ak
 │   ├── plutus.json
 │   └── plutus.ts
 ├── main.tx3
@@ -22,7 +25,7 @@ In this example, an Owner address locks tAda that will be available for unlockin
 ```
 
 
-In typical dApp fashion, there is an offchain and an onchain. In the `offchain` directory, we have the code related to building, signing and submitting the locking and unlocking transactions. In the `onchain` directory, we have the validator code that will be used to verify that the transaction is correct on the blockchain.
+In typical dApp fashion, there is an offchain and an onchain. In the `offchain` directory, we have the code related to building, signing and submitting the place and swap transactions. In the `onchain` directory, we have the validator code that will be used to verify that the transaction is correct on the blockchain.
 
 ## Setup for the demo
 
@@ -42,17 +45,7 @@ $> trix explore
 
 You're now ready to start submitting transactions!.
 
-<!-- 
-We also need to make a `.env` file in the [`offchain` directory](./offchain/), with the following keys: -->
-<!-- 
-```shell
-BENEFICIARY = "addr_test1..."
-SEED_BENEFICIARY = "fade buddy legend ..."
-``` -->
-
-<!-- The `BENEFICIARY` key corresponds to a Cardano address, and the `SEED_BENEFICIARY` is the seed phrase for the Beneficiary. -->
-
-## Lock vesting
+## Place order
 
 In a different terminal, run the following command to lock funds in the Vesting contract:
 
@@ -60,35 +53,41 @@ In a different terminal, run the following command to lock funds in the Vesting 
 $> trix invoke
 ```
 
-Select the `lock` transaction providing the following parameters:
-* **beneficiary**: alice
+Select the `place_order` transaction providing the following parameters:
+```
+TODO
+```
+<!-- * **beneficiary**: alice
 * **owner**: bob
 * **quantity**: 2000000
-* **until**: 120000 (2 minutes)
-
+* **until**: 120000 (2 minutes) -->
+<!-- 
 Whose wallet do you think must be used for signing the transaction?.
 
 If everything was done correctly, your CLI should look like this:
 
 ![CLI lock](./img/cli-lock.png)
 
-That's it! Now you can go to the terminal running the devnet explorer to see your transaction.
+That's it! Now you can go to the terminal running the devnet explorer to see your transaction. -->
 
-## Unlock a Vesting
+## Swap assets
 Go to the Transactions tab in the devnet explorer. You should see one transaction only. Hit Enter to see the details of the tx.
-Copy the hash next to the "tx" field, we'll need that to unlock the funds (let's call that LOCKED_UTXO)
+Copy the hash next to the "tx" field, we'll need that to perform the swap (let's call that ORDER_UTXO)
 Once again, run:
 ```bash
 $> trix invoke
 ```
 
-Select the `unlock` transaction providing the following parameters:
-* **beneficiary**: alice
+Select the `swap` transaction providing the following parameters:
+```
+TODO
+```
+<!-- * **beneficiary**: alice
 * **locked**: LOCKED_UTXO#0
 
 Your CLI should look like this:
 
-![CLI unlock](./img/cli-unlock.png)
+![CLI unlock](./img/cli-unlock.png) -->
 
 ## Resources
 

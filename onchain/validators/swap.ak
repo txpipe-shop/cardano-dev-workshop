@@ -1,3 +1,4 @@
+use aiken/builtin.{slice_bytearray}
 use cardano/assets.{add, match, zero}
 use cardano/transaction.{Output, OutputReference, Transaction}
 use vodka_address.{address_payment_key}
@@ -35,6 +36,8 @@ validator swap {
       destination,
     } = datum
 
+    let recipient_payment_key = slice_bytearray(0, 28, destination)
+
     // We know the order of the outputs, so we can just access the index where we want the payment output:
     expect [payment_output, ..] = tx.outputs
 
@@ -46,7 +49,7 @@ validator swap {
 
     // Now perform the checks:
     and {
-      (expected_destination_key == destination)?,
+      (expected_destination_key == recipient_payment_key)?,
       match(payment_output.value, expected_payment_value, >=)?,
     }
   }
