@@ -1,4 +1,4 @@
-use aiken/builtin.{slice_bytearray}
+use aiken/primitive/bytearray
 use cardano/assets.{
   ada_asset_name, ada_policy_id, from_asset, lovelace_of, match,
 }
@@ -16,7 +16,7 @@ pub type VaultDatum {
 //   1. The address of the vault input and vault output must match.
 //   2. The current recipient must sign the transaction.
 //   3. The output must have a valid datum.
-//   4. The amount of ADA in the output must be at most half of the input amount.
+//   4. The amount of ADA in the output must be at least half of the input amount.
 validator vault {
   // Parameters:
   //   - datum: The datum of the vault being spent.
@@ -32,7 +32,7 @@ validator vault {
     // Destructure the datum to get the field we need.
     expect Some(datum) = datum
     let VaultDatum { current_recipient } = datum
-    let recipient_payment_key = slice_bytearray(0, 28, current_recipient)
+    let recipient_payment_key = bytearray.slice(current_recipient, 1, 28)
 
     // Look for the vault input and destructure its fields
     expect Some(vault_input) =
@@ -52,16 +52,17 @@ validator vault {
     // next recipient.
     let VaultDatum { .. } = to_vault_datum(out_datum)
 
-    // Make sure that the claim amount is at most half of the current locked amount.
-    let current_locked = lovelace_of(in_value)
-    let expected_remaining_value =
-      from_asset(ada_policy_id, ada_asset_name, current_locked / 2)
+    let half_of =
+      fn(amount: Int) -> Int { amount / 2 }
 
     // Now perform the checks:
     and {
+      // Vault preserves address
       (in_address == out_address)?,
+      // Current recipient must sign the transaction
       key_signed(tx.extra_signatories, recipient_payment_key)?,
-      match(out_value, expected_remaining_value, >=)?,
+      // Output value has at least half of the input value
+      (lovelace_of(out_value) >= half_of(lovelace_of(in_value)))?,
     }
   }
 
