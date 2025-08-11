@@ -1,8 +1,8 @@
-# Vesting example
+# Vault example
 
-A vesting contract is a common type of contract that allows funds to be locked for a period of time and unlocked later—once a specified time has passed. Typically, a vesting contract defines a beneficiary who may be different from the original owner.
+A vault contract, also known as Escrow, is a common type of contract that allows funds to be locked for one or more recipients. The conditions for the release of these funds are business-specific and can be very flexible.
 
-In this example, an Owner address locks tAda that will be available for unlocking some time after the initial locking transaction, by either the Beneficiary stated in the datum or the Owner.
+In this example, an Initiator address locks tAda and chooses a Recipient, who is allowed to claim up to half of the funds in the Vault and is also allowed to set a new Recipient.
 
 ## Folder structure
 
@@ -22,11 +22,15 @@ In this example, an Owner address locks tAda that will be available for unlockin
 ```
 
 
-In typical dApp fashion, there is an offchain and an onchain. In the `offchain` directory, we have the code related to building, signing and submitting the locking and unlocking transactions. In the `onchain` directory, we have the validator code that will be used to verify that the transaction is correct on the blockchain.
+In typical dApp fashion, there is an offchain and an onchain. In the `offchain` directory, we have the code related to building **lock** and **claim** transactions. In the `onchain` directory, we have the validator code that will be used to verify that the transaction is correct on the blockchain.
 
 ## Setup for the demo
 
 To run this example we need the toolchain of tx3. You can set everything up following the [tx3up Quick Start Guide][1].
+Once this is done, run the bash script at the root of the repository to install the necessary versions:
+```bash
+$> bash setup.sh
+```
 The validator compiled code is already included, but to make modifications, you'll need to install [Aiken][2].
 
 We'll be running everything sitting in the [`src`](./) folder.
@@ -42,17 +46,7 @@ $> trix explore
 
 You're now ready to start submitting transactions!.
 
-<!-- 
-We also need to make a `.env` file in the [`offchain` directory](./offchain/), with the following keys: -->
-<!-- 
-```shell
-BENEFICIARY = "addr_test1..."
-SEED_BENEFICIARY = "fade buddy legend ..."
-``` -->
-
-<!-- The `BENEFICIARY` key corresponds to a Cardano address, and the `SEED_BENEFICIARY` is the seed phrase for the Beneficiary. -->
-
-## Lock vesting
+## Lock in vault
 
 In a different terminal, run the following command to lock funds in the Vesting contract:
 
@@ -61,10 +55,9 @@ $> trix invoke
 ```
 
 Select the `lock` transaction providing the following parameters:
-* **beneficiary**: alice
-* **owner**: bob
-* **quantity**: 2000000
-* **until**: 120000 (2 minutes)
+* **currentrecipient**: alice
+* **initiator**: bob
+* **total_lock**: 10000000
 
 Whose wallet do you think must be used for signing the transaction?.
 
@@ -74,7 +67,7 @@ If everything was done correctly, your CLI should look like this:
 
 That's it! Now you can go to the terminal running the devnet explorer to see your transaction.
 
-## Unlock a Vesting
+## Claim half
 Go to the Transactions tab in the devnet explorer. You should see one transaction only. Hit Enter to see the details of the tx.
 Copy the hash next to the "tx" field, we'll need that to unlock the funds (let's call that LOCKED_UTXO)
 Once again, run:
@@ -82,13 +75,15 @@ Once again, run:
 $> trix invoke
 ```
 
-Select the `unlock` transaction providing the following parameters:
-* **beneficiary**: alice
-* **locked**: LOCKED_UTXO#0
+Select the `claim` transaction providing the following parameters:
+* **current_amount**: 5000000
+* **currentrecipient**: alice
+* **nextrecipient**: charli
+* **vault_ref**: LOCKED_UTXO#0
 
 Your CLI should look like this:
 
-![CLI unlock](./img/cli-unlock.png)
+![CLI unlock](./img/cli-claim.png)
 
 ## Resources
 
