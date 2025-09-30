@@ -5,3 +5,7 @@ value = 100000000000
 [[utxos]]
 address = "@bob"
 value = 100000000000
+
+[[utxos]]
+address = "@charli"
+value = 100000000000

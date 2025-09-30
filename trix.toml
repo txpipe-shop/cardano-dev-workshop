@@ -19,6 +19,10 @@ random_key = true
 name = "bob"
 random_key = true
 
+[[wallets]]
+name = "charli"
+random_key = true
+
 [profiles.preview]
 chain = "CardanoPreview"
 
