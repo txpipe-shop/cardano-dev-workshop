@@ -1,11 +1,9 @@
+use aiken/collection/list
 use aiken/primitive/bytearray
-use cardano/assets.{
-  ada_asset_name, ada_policy_id, from_asset, lovelace_of, match,
-}
+use cardano/assets.{lovelace_of}
 use cardano/transaction.{
   Datum, InlineDatum, Input, Output, OutputReference, Transaction, find_input,
 }
-use vodka_extra_signatories.{key_signed}
 
 pub type VaultDatum {
   /// Beneficiary's credentials
@@ -15,7 +13,7 @@ pub type VaultDatum {
 // The Vault validator will be run whenever a Vault is spent. It checks:
 //   1. The address of the vault input and vault output must match.
 //   2. The current recipient must sign the transaction.
-//   3. The output must have a valid datum.
+//   3. The recipient must change
 //   4. The amount of ADA in the output must be at least half of the input amount.
 validator vault {
   // Parameters:
@@ -48,9 +46,10 @@ validator vault {
     let Output { address: out_address, value: out_value, datum: out_datum, .. } =
       vault_output
 
-    // We just make sure that the output has a valid datum. The current recipient is allowed to change the
+    // We make sure that the output has a valid datum. The current recipient must change the
     // next recipient.
-    let VaultDatum { .. } = to_vault_datum(out_datum)
+    let VaultDatum { current_recipient: output_recipient } =
+      to_vault_datum(out_datum)
 
     let half_of =
       fn(amount: Int) -> Int { amount / 2 }
@@ -60,7 +59,9 @@ validator vault {
       // Vault preserves address
       (in_address == out_address)?,
       // Current recipient must sign the transaction
-      key_signed(tx.extra_signatories, recipient_payment_key)?,
+      list.has(tx.extra_signatories, recipient_payment_key)?,
+      // The Recipient must change
+      output_recipient != current_recipient,
       // Output value has at least half of the input value
       (lovelace_of(out_value) >= half_of(lovelace_of(in_value)))?,
     }
