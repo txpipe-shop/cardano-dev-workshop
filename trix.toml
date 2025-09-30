@@ -11,15 +11,17 @@ url = "https://registry.dgram.io"
 [profiles.devnet]
 chain = "CardanoDevnet"
 
-[[profiles.devnet.wallets]]
+[[wallets]]
 name = "alice"
 random_key = true
-initial_balance = 1000000000000000000
 
-[[profiles.devnet.wallets]]
+[[wallets]]
 name = "bob"
 random_key = true
-initial_balance = 1000000000000000000
+
+[[wallets]]
+name = "charli"
+random_key = true
 
 [profiles.preview]
 chain = "CardanoPreview"

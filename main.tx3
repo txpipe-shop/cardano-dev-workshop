@@ -1,114 +1,76 @@
-party Owner;
+party Initiator;
+party Current_Recipient;
+party Next_Recipient;
 
-party Beneficiary;
+policy Halfpot = 0xd32d3cc063103341d280023166e5f5330cafe6aad2dfac920e846e51;
 
-policy Vault = 0x3d6a08a2161b3c365101b4abd92583c32a6ef2b804431d53ebc26bfe;
-
-type VestingParams {
-  lock_until: Int,
-  owner: Bytes,
-  beneficiary: Bytes,
+type HalfpotDatum {
+  current_recipient: Bytes,
 }
 
 tx lock(
-    quantity: Int,
-    until_posix: Int,
+    total_lock: Int,
 ) {
     input source {
-        from: Owner,
-        min_amount: Ada(quantity),
+        from: Initiator,
+        min_amount: Ada(total_lock) + fees,
     }
 
     output {
-        to: Vault,
-        amount: Ada(quantity),
-        datum: VestingParams {
-            lock_until: until_posix,
-            owner: Owner,
-            beneficiary: Beneficiary,
+        to: Halfpot,
+        amount: Ada(total_lock),
+        datum: HalfpotDatum {
+            current_recipient: Next_Recipient,
         },
     }
 
     output {
-        to: Owner,
-        amount: source - Ada(quantity) - fees,
+        to: Initiator,
+        amount: source - Ada(total_lock) - fees,
     }
-
 }
 
-tx unlock(
-    locked: UtxoRef,
-    current_slot: Int,
-) {
-    input source {
-        from: Vault,
-        ref: locked,
-        datum_is: VestingParams,
+tx claim(
+    halfpot_ref: UtxoRef,
+    amount_to_unlock: Int,
+){
+    input halfpot {
+        from: Halfpot,
+        ref: halfpot_ref,
+        datum_is: HalfpotDatum,
         redeemer: (),
     }
 
     input gas {
-        from: Beneficiary,
+        from: Current_Recipient,
         min_amount: fees,
-    }
-
-    collateral {
-        from: Beneficiary,
-        min_amount: fees,
-    }
-    
-    output {
-        to: Beneficiary,
-        amount: source + gas - fees,
-    }
-
-    validity {
-        since_slot: current_slot,
     }
 
     signers {
-        Beneficiary,
+        Current_Recipient,
+    }
+
+    output {
+        to: Halfpot,
+        amount: halfpot - Ada(amount_to_unlock),
+        datum: HalfpotDatum {
+            current_recipient: Next_Recipient,
+        },
+    }
+
+    output payment {
+        to: Current_Recipient,
+        amount: Ada(amount_to_unlock) + gas - fees,
+    }
+
+    collateral {
+        from: Current_Recipient,
+        min_amount: Ada(5000000),
     }
 
     cardano::plutus_witness {
         version: 3,
-        script: 0x5901b201010029800aba2aba1aba0aab9faab9eaab9dab9a488888896600264653001300800198041804800cdc3a400530080024888966002600460106ea800e2646644b30013370e900018059baa0018cc004c03cc030dd5000c88a60020053370066e040040092002801ae312301030113011301130113011301130113011001911919800800801912cc00400629422b30013371e6eb8c04c00400e29462660040046028002807101124444b3001330013758600460206ea802260026eb8c04cc050c040dd500252002a4070801a29462b3001330013758600460206ea802260026eb8c04cc050c050c040dd500252002a4070801a26464646644b3001300e301437540051598009807180a1baa30183019003899b88001375a6030602a6ea800a266e24004dd6980c180a9baa002404d14a08098c058004dd6980b18099baa007330143015001330149800980598089baa30153016001a60103d87a8000a60103d8798000404097ae030113754602860226ea8004c04cc050c050c050c050c050c050c050c040dd50044528201c40388b2014300d001300d300e0013009375400716401c300800130033754011149a26cac8009,
-    }
-}
-
-
-tx reclaim(
-    locked: UtxoRef,
-) {
-    input source {
-        from: Vault,
-        ref: locked,
-        datum_is: VestingParams,
-        redeemer: (),
-    }
-
-    input gas {
-        from: Owner,
-        min_amount: fees,
-    }
-
-    collateral {
-        from: Owner,
-        min_amount: fees,
-    }
-    
-    output {
-        to: Owner,
-        amount: source + gas - fees,
-    }
-
-    signers {
-        Owner,
-    }
-
-    cardano::plutus_witness {
-        version: 3,
-        script: 0x5901b201010029800aba2aba1aba0aab9faab9eaab9dab9a488888896600264653001300800198041804800cdc3a400530080024888966002600460106ea800e2646644b30013370e900018059baa0018cc004c03cc030dd5000c88a60020053370066e040040092002801ae312301030113011301130113011301130113011001911919800800801912cc00400629422b30013371e6eb8c04c00400e29462660040046028002807101124444b3001330013758600460206ea802260026eb8c04cc050c040dd500252002a4070801a29462b3001330013758600460206ea802260026eb8c04cc050c050c040dd500252002a4070801a26464646644b3001300e301437540051598009807180a1baa30183019003899b88001375a6030602a6ea800a266e24004dd6980c180a9baa002404d14a08098c058004dd6980b18099baa007330143015001330149800980598089baa30153016001a60103d87a8000a60103d8798000404097ae030113754602860226ea8004c04cc050c050c050c050c050c050c050c040dd50044528201c40388b2014300d001300d300e0013009375400716401c300800130033754011149a26cac8009,
+        script: 0x5902cc01010029800aba2aba1aba0aab9faab9eaab9dab9a488888896600264653001300800198041804800cdc3a400530080024888966002600460106ea800e2653001300d00198069807000cdc3a40009112cc004c004c030dd500144c8cc89660026008601e6ea800a2646644b30013375e602c002602c00715980099199119801001000912cc00400629422b30013371e6eb8c06400400e2946266004004603400280a10171bac3017301830183018301830183018301830183014375401930014800a901c40117188acc006600266e3cdd7180b18099baa325980099b8748010c04cdd5000c4c9660026032003132598009805180a9baa001899192cc004c07000a20071640646eb8c068004c058dd5000c59014180c000c59016180a1baa0018b202430163017002004a50a5140451323371266e0cc004dd5980b980c0012400860026eacc05c00c8c966002601c60286ea80062900044dd6980c180a9baa001404c64b3001300e3014375400314c103d87a8000899198008009bab30193016375400444b30010018a6103d87a8000899192cc004cdc8a45000018acc004cdc7a44100001898061980d980c80125eb82298103d87a8000405d133004004301d003405c6eb8c05c004c068005018202632330010010022259800800c5300103d87a8000899192cc004cdc8a45000018acc004cdc7a44100001898059980d180c00125eb82298103d87a80004059133004004301c00340586eb8c058004c064005017452820228a50404514a08088c054004c044dd5180a180a98089baa30143011375400660206ea8c04cdd61809980a180a18081baa0088b201c323300100137586024601e6ea801c896600200314c0103d87a80008992cc004cdd7980a18089baa0010078980219809800a5eb82266006006602a0048078c04c0050111bae3011300e37546022601c6ea800cdd2a400116402c3009375400716401c300800130033754011149a26cac80081,
     }
 }
 
